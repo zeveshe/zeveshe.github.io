@@ -1,0 +1,15 @@
+highlighter: pygments
+timezone: Europe/Oslo
+defaults:
+    -
+        scope:
+            path: ''
+            types: 'posts'
+        values:
+            layout: 'main'
+    -
+        scope:
+            path: ''
+            types: 'pages'
+        values:
+            layout: 'main'

@@ -1,0 +1,75 @@
+---
+title: Race conditions with setState in React
+tags:
+    - React
+    - ES6
+    - Flux
+    - Reflux
+---
+
+<p>
+    Race conditions when calling setState can cause weird bugs.
+</p>
+
+<p>
+    Don't do stuff like this:
+</p>
+
+{% highlight javascript %}
+class MyComponent extends React.Component {
+    componentDidMount () {
+        doAjaxCall().then(data => {
+            this.setState({origData: data})
+            this.filterData();
+        });
+    }
+
+    filterData () {
+        let filteredData = doSomeFiltering(this.state.origData);
+        this.setState({filteredData});
+    }
+
+    render () {
+        // render original and/or filtered data
+    }
+}
+{% endhighlight %}
+
+<p>
+    Instead do:
+</p>
+
+{% highlight javascript %}
+class MyComponent extends React.Component {
+    componentDidMount () {
+        doAjaxCall().then(data => {
+            this.setState(origState => {
+                let newState = Object.assign(origState, {origData: data});
+                return this.filterData(newState);
+            });
+        });
+    }
+
+    filterData (origState) {
+        let filteredData = doSomeFiltering(origState.origData);
+        return Object.assign(origState, {filteredData});
+    }
+
+    render () {
+        // render original and/or filtered data
+    }
+}
+{% endhighlight %}
+
+<p>
+    React's <code>setState</code> can accept callable as an argument. That callable will receive current state object,
+    and should return new modified state. By using <code>setState</code> this way,
+    you dramatically reduce number of race conditions you have to deal with.
+</p>
+
+<p>
+    Another question is: why the hell is data filtered by component in the first place? <code>Store</code> should be handling that.
+</p>
+<p class="lead">
+    Read about <a href="https://facebook.github.io/flux/">Flux</a> and <a href="https://github.com/reflux/refluxjs">Reflux</a>.
+</p>
